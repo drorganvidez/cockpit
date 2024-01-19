@@ -24,9 +24,24 @@ ForwardedForHeader = X-Forwarded-For
 Fatal = /var/log/cockpit.log
 EOF
 
+# Reiniciar Cockpit para aplicar los cambios
+echo "Reiniciando Cockpit..."
+sudo systemctl restart cockpit
 echo "Configuración de Cockpit actualizada."
 
-# Reiniciar Cockpit para aplicar los cambios
-sudo systemctl restart cockpit
+# Crear un archivo de configuración para NetworkManager para corregir el bug
+echo "Creando archivo de configuración de NetworkManager..."
+sudo tee /etc/NetworkManager/conf.d/10-globally-managed-devices.conf > /dev/null << EOF
+[keyfile]
+unmanaged-devices=none
+EOF
 
-echo "Instalación y configuración completadas."
+# Configurar una interfaz de red dummy
+echo "Configurando interfaz de red dummy..."
+sudo nmcli con add type dummy con-name fake ifname fake0 ip4 1.2.3.4/24 gw4 1.2.3.1
+
+echo "Se realizará un reinicio del sistema para aplicar todos los cambios."
+read -p "Presiona Enter para continuar con el reinicio..."
+
+# Reiniciar el sistema
+sudo reboot
